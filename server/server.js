@@ -2,16 +2,21 @@
 const express = require("express");
 
 const app = express();
-const PORT = 5000;
 
 app.use(express.json());
 
-// Custom CORS middleware
+// CORS middleware
 app.use((req, res, next) => {
-    res.setHeader(
-        "Access-Control-Allow-Origin",
-        "http://localhost:5173"
-    );
+    const allowedOrigins = [
+        "http://localhost:5173",
+        process.env.CLIENT_URL
+    ].filter(Boolean);
+
+    const origin = req.headers.origin;
+
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+    }
 
     res.setHeader(
         "Access-Control-Allow-Methods",
@@ -45,6 +50,14 @@ app.get("/", (req, res) => {
     res.send("BudgetIssueTracker Backend is Running!");
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-});
+// Export Express app for Vercel
+module.exports = app;
+
+// Local development
+if (require.main === module) {
+    const PORT = process.env.PORT || 5000;
+
+    app.listen(PORT, () => {
+        console.log(`Server running at http://localhost:${PORT}`);
+    });
+}
